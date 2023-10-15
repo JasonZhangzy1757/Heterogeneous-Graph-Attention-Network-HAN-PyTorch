@@ -4,8 +4,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from model import HAN
-from utils import load_data_HAN, accuracy, knn_classifier
+from model_RGCN import RGCN
+from utils import load_data_RGCN, accuracy, knn_classifier
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -40,24 +41,16 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(args.seed)
 
     # Load the data
-    # features: (N, F), meta_path_list: (M, N, N), labels: (N, 1)
-    features, meta_path_list, labels, idx_train, idx_val, idx_test = load_data_HAN(args.dataset)
-    model = HAN(feature_dim=features.shape[1],
-                hidden_dim=args.hidden_dim,
-                num_classes=int(labels.max()) + 1,
-                dropout=args.dropout,
-                num_heads=args.num_heads,
-                alpha=args.alpha,
-                q_vector=args.q_vector)
+    pyg_data = load_data_RGCN(args.dataset)
+
+    model = RGCN(num_nodes=pyg_data.x.size(1),
+                 num_relations=pyg_data.edge_type.max().item() + 1,
+                 hidden_dim=args.hidden_dim,
+                 num_classes=pyg_data.y.unique().size(0))
 
     if args.cuda:
         model.cuda()
-        features = features.cuda()
-        labels = labels.cuda()
-        idx_train = idx_train.cuda()
-        idx_val = idx_val.cuda()
-        idx_test = idx_test.cuda()
-        meta_path_list = [meta_path.cuda() for meta_path in meta_path_list]
+        pyg_data.cuda()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(),
@@ -66,10 +59,14 @@ if __name__ == '__main__':
     best_loss_val = float('inf')
     patience = args.patience
     counter = 0
+    idx_train = pyg_data.train_mask
+    idx_val = pyg_data.val_mask
+    idx_test = pyg_data.test_mask
+    labels = pyg_data.y
 
     for epoch in range(args.epochs):
         model.train()
-        output = model(features, meta_path_list)
+        output = model(pyg_data)
         loss_train = criterion(output[idx_train], labels[idx_train])
         acc_train = accuracy(output[idx_train], labels[idx_train])
 
@@ -79,7 +76,7 @@ if __name__ == '__main__':
 
         with torch.no_grad():
             model.eval()
-            output = model(features, meta_path_list)
+            output = model(pyg_data)
             loss_val = criterion(output[idx_val], labels[idx_val])
             acc_val = accuracy(output[idx_val], labels[idx_val])
 
@@ -105,7 +102,8 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load('best_model.pth'))
 
     model.eval()
-    output = model(features, meta_path_list)
+    output = model(pyg_data)
     X = output[idx_test].detach().cpu().numpy()
     y = labels[idx_test].detach().cpu().numpy()
     knn_classifier(X, y, seed=args.seed)
+
