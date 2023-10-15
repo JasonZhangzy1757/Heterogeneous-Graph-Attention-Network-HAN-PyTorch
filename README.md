@@ -1,6 +1,6 @@
 # Heterogeneous-Graph-Attention-Network-HAN-PyTorch
 
-This is a proof of concept simple version of HAN implementation using pytorch framework. The authors' original code can be found [here](https://github.com/Jhy1993/HAN).
+This is a proof of concept of HAN implementation using pytorch framework. The authors' original code can be found [here](https://github.com/Jhy1993/HAN).
 
 If you find this work helpful for your research, you could cite the original paper as the following:
 ```
@@ -13,25 +13,17 @@ If you find this work helpful for your research, you could cite the original pap
 }
 ```
 
-This implementation is also inspired by the [dgl implemenation](https://github.com/dmlc/dgl/tree/master/examples/pytorch/han) and the earlier pytorch implementation of GAT by [Diego999](https://github.com/Diego999/pyGAT).
+This implementation is also inspired by the [dgl implemenation](https://github.com/dmlc/dgl/tree/master/examples/pytorch/han) and the earlier pytorch implementation of GAT by [Diego999](https://github.com/Diego999/pyGAT). The data processing is copied from [ZZy979](https://github.com/ZZy979). Please also check his other brilliant works in his page. 
 
 ## Usage
 
-1) Download the DBLP preprocessed data from the author's repo and put the data under a new data directory.
+1) Download the data [here](https://drive.google.com/drive/folders/13RcthEaCjg2yILIWZgzk-Xs4si-mlQZd?usp=sharing) and put the data under a new data directory. If you don't have access to Google Drive, you could also check [ZZy979's](https://github.com/ZZy979) work. 
 2) `python main.py` for reproducing HAN's work.
+3) `python RGCN_baseline.py` for adding on an RGCN baseline.
+4) Use `--dataset` to specify the dataset you hope to run against. Currently it's `DBLP` by default. The options could be: `ACM` or `IMDB`. 
 
 
 ## Performance
+![Results](https://github.com/JasonZhangzy1757/Heterogeneous-Graph-Attention-Network-HAN-PyTorch/assets/56742253/f0c9db4f-d9da-44ce-8b0b-b9e5e3f4e17b)
 
-The performance on the DBLP classification task compared with the original paper.
 
-|                     |    Paper          | Pytorch        |
-| ------------------- | --------------    | -------------- |
-| Macro-F1 80%        |    93.08          | 93.28          |
-| Macro-F1 60%        |    92.80          | 92.07          |
-| Macro-F1 40%        |    92.40          | 92.27          |
-| Macro-F1 20%        |    92.24          | 92.00          |
-| Micro-F1 80%        |    93.99          | 94.06          |
-| Micro-F1 60%        |    93.70          | 93.09          |
-| Micro-F1 40%        |    93.30          | 93.12          |
-| Micro-F1 20%        |    93.11          | 92.91          |
